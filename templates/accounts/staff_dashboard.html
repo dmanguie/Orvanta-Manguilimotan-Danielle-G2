@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{{ user.business_name }} - Staff Dashboard</h2>
+<p>Welcome, {{ user.first_name|default:user.username }}.</p>
+<ul>
+  <li>My assigned orders (coming soon)</li>
+  <li>Upcoming deadlines (coming soon)</li>
+</ul>
+{% endblock %}

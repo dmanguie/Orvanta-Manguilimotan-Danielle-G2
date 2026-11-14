@@ -9,7 +9,7 @@ from .models import User
 
 
 def redirect_by_role(user):
-    return redirect('admin_dashboard' if user.role == User.ADMIN else 'customer_dashboard')
+    return redirect('owner_dashboard' if user.role == User.OWNER else 'staff_dashboard')
 
 
 def register_view(request):
@@ -51,15 +51,15 @@ def dashboard_redirect(request):
     return redirect_by_role(request.user)
 
 
-@role_required(User.ADMIN)
-def admin_dashboard(request):
-    return render(request, 'accounts/admin_dashboard.html',
+@role_required(User.OWNER)
+def owner_dashboard(request):
+    return render(request, 'accounts/owner_dashboard.html',
                   {'total_users': User.objects.count()})
 
 
-@role_required(User.CUSTOMER)
-def customer_dashboard(request):
-    return render(request, 'accounts/customer_dashboard.html')
+@role_required(User.STAFF)
+def staff_dashboard(request):
+    return render(request, 'accounts/staff_dashboard.html')
 
 
 @login_required

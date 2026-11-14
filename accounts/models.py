@@ -3,17 +3,17 @@ from django.db import models
 
 
 class User(AbstractUser):
-    ADMIN = 'admin'
-    CUSTOMER = 'customer'
-    ROLE_CHOICES = [(ADMIN, 'Admin'), (CUSTOMER, 'Customer')]
+    OWNER = 'owner'
+    STAFF = 'staff'
+    ROLE_CHOICES = [(OWNER, 'Owner'), (STAFF, 'Staff')]
 
     email = models.EmailField(unique=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=CUSTOMER)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=OWNER)
     business_name = models.CharField(max_length=150, blank=True)
     contact_number = models.CharField(max_length=20, blank=True)
     profile_photo = models.ImageField(upload_to='profiles/', blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if self.is_superuser:
-            self.role = self.ADMIN
+            self.role = self.OWNER
         super().save(*args, **kwargs)

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{{ user.business_name }} - Owner Dashboard</h2>
+<p>Welcome, {{ user.first_name|default:user.username }}.</p>
+<p>Total users: {{ total_users }}</p>
+<ul>
+  <li>Active orders (coming soon)</li>
+  <li>Due this week (coming soon)</li>
+  <li>Unpaid balances (coming soon)</li>
+</ul>
+{% endblock %}
