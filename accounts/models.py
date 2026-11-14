@@ -9,6 +9,7 @@ class User(AbstractUser):
 
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=CUSTOMER)
+    business_name = models.CharField(max_length=150, blank=True)
     contact_number = models.CharField(max_length=20, blank=True)
     profile_photo = models.ImageField(upload_to='profiles/', blank=True, null=True)
 

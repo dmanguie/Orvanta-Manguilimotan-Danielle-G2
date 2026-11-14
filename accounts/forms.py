@@ -22,7 +22,7 @@ class RegisterForm(UserCreationForm):
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'contact_number', 'profile_photo']
+        fields = ['first_name', 'last_name', 'email', 'business_name', 'contact_number', 'profile_photo']
 
     def clean_email(self):
         email = self.cleaned_data['email'].lower()
