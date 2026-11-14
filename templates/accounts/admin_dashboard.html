@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Admin Dashboard</h2>
+<p>Welcome, {{ user.username }}.</p>
+<p>Total users: {{ total_users }}</p>
+<ul>
+  <li><a href="/admin/">Manage Users</a></li>
+</ul>
+{% endblock %}
