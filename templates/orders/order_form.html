@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} - Orvanta{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">{{ action }}</h2>
+    <a href="{% if order %}{% url 'order_detail' order.pk %}{% else %}{% url 'order_list' %}{% endif %}" class="btn btn-secondary btn-sm">Cancel</a>
+  </div>
+
+  <form method="post" novalidate id="order-form">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert error">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <h3 style="font-size: 1.1rem; color: #1e293b; margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+      1. Order Information
+    </h3>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="{{ form.customer.id_for_label }}">Customer *</label>
+        {{ form.customer }}
+        {% if form.customer.errors %}<div class="errorlist">{{ form.customer.errors }}</div>{% endif %}
+        <p class="help-text"><a href="{% url 'customer_create' %}" target="_blank">+ Add New Customer</a></p>
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.order_type.id_for_label }}">Order Category *</label>
+        {{ form.order_type }}
+        {% if form.order_type.errors %}<div class="errorlist">{{ form.order_type.errors }}</div>{% endif %}
+        <p class="help-text"><a href="{% url 'order_types_list' %}" target="_blank">+ Add Custom Category</a></p>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="{{ form.title.id_for_label }}">Order Title / Summary *</label>
+      {{ form.title }}
+      {% if form.title.errors %}<div class="errorlist">{{ form.title.errors }}</div>{% endif %}
+    </div>
+
+    <div class="form-group">
+      <label for="{{ form.description.id_for_label }}">Specifications & Description</label>
+      {{ form.description }}
+      {% if form.description.errors %}<div class="errorlist">{{ form.description.errors }}</div>{% endif %}
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="{{ form.order_date.id_for_label }}">Order Date *</label>
+        {{ form.order_date }}
+        {% if form.order_date.errors %}<div class="errorlist">{{ form.order_date.errors }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.deadline.id_for_label }}">Target Deadline</label>
+        {{ form.deadline }}
+        {% if form.deadline.errors %}<div class="errorlist">{{ form.deadline.errors }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.fulfillment_date.id_for_label }}">Fulfillment / Delivery Date</label>
+        {{ form.fulfillment_date }}
+        {% if form.fulfillment_date.errors %}<div class="errorlist">{{ form.fulfillment_date.errors }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="{{ form.notes.id_for_label }}">Internal Notes</label>
+      {{ form.notes }}
+      {% if form.notes.errors %}<div class="errorlist">{{ form.notes.errors }}</div>{% endif %}
+    </div>
+
+    <!-- 2. Order Line Items -->
+    <h3 style="font-size: 1.1rem; color: #1e293b; margin-top: 2rem; margin-bottom: 0.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+      2. Order Items / Services (At least 1 required)
+    </h3>
+
+    {{ formset.management_form }}
+    {% if formset.non_form_errors %}
+      <div class="alert error">{{ formset.non_form_errors }}</div>
+    {% endif %}
+
+    <div class="table-responsive">
+      <table class="item-table" style="margin-bottom: 1rem;">
+        <thead>
+          <tr>
+            <th style="width: 50%;">Item / Service Description *</th>
+            <th style="width: 15%;">Quantity *</th>
+            <th style="width: 20%;">Unit Price (₱) *</th>
+            <th style="width: 15%; text-align: center;">Delete</th>
+          </tr>
+        </thead>
+        <tbody id="items-tbody">
+          {% for item_form in formset %}
+            <tr class="item-form-row">
+              <td>
+                {{ item_form.id }}
+                {{ item_form.item_description }}
+                {% if item_form.item_description.errors %}
+                  <div class="errorlist">{{ item_form.item_description.errors }}</div>
+                {% endif %}
+              </td>
+              <td>
+                {{ item_form.quantity }}
+                {% if item_form.quantity.errors %}
+                  <div class="errorlist">{{ item_form.quantity.errors }}</div>
+                {% endif %}
+              </td>
+              <td>
+                {{ item_form.unit_price }}
+                {% if item_form.unit_price.errors %}
+                  <div class="errorlist">{{ item_form.unit_price.errors }}</div>
+                {% endif %}
+              </td>
+              <td style="text-align: center;">
+                {% if item_form.instance.pk %}
+                  {{ item_form.DELETE }}
+                {% else %}
+                  <span style="color: #94a3b8;">&mdash;</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="btn-group" style="margin-top: 1.75rem; justify-content: flex-end;">
+      <a href="{% if order %}{% url 'order_detail' order.pk %}{% else %}{% url 'order_list' %}{% endif %}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary" style="padding: 0.6rem 1.5rem; font-size: 1rem;">
+        Save Order
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ order.order_no }} - {{ order.title }}{% endblock %}
+
+{% block content %}
+<div class="card">
+  <!-- Card Header -->
+  <div class="card-header">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+        <span style="font-size: 1.1rem; font-weight: 700; color: #64748b;">{{ order.order_no }}</span>
+        <h2 class="card-title" style="margin: 0;">{{ order.title }}</h2>
+        <span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+      </div>
+      <p style="margin: 0.25rem 0 0; color: #64748b; font-size: 0.875rem;">
+        Category: <strong>{{ order.order_type.type_name }}</strong> &bull; Received: <strong>{{ order.order_date|date:"M d, Y" }}</strong>
+      </p>
+    </div>
+    <div class="btn-group">
+      <a href="{% url 'order_list' %}" class="btn btn-secondary btn-sm">&larr; Back to Orders</a>
+      <a href="{% url 'order_edit' order.pk %}" class="btn btn-primary btn-sm">Edit Order</a>
+      <a href="{% url 'order_delete' order.pk %}" class="btn btn-danger btn-sm">Cancel / Delete</a>
+    </div>
+  </div>
+
+  <!-- Key Information Grid -->
+  <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 1.5rem;">
+    <div class="stat-card" style="text-align: left;">
+      <div class="stat-label">Customer Information</div>
+      <div style="margin-top: 0.35rem; font-weight: 600; font-size: 1.05rem;">
+        <a href="{% url 'customer_detail' order.customer.pk %}" style="color: #0284c7; text-decoration: none;">
+          {{ order.customer.full_name }}
+        </a>
+      </div>
+      {% if order.customer.company_name %}
+        <div style="font-size: 0.85rem; color: #64748b;">{{ order.customer.company_name }}</div>
+      {% endif %}
+      <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.25rem;">
+        {{ order.customer.phone|default:order.customer.email|default:"No direct contact" }}
+      </div>
+    </div>
+
+    <div class="stat-card" style="text-align: left;">
+      <div class="stat-label">Schedule & Deadlines</div>
+      <div style="margin-top: 0.35rem; font-size: 0.9rem;">
+        <div>Deadline: <strong>{{ order.deadline|date:"M d, Y"|default:"Not specified" }}</strong></div>
+        <div style="margin-top: 0.25rem;">Fulfillment: <strong>{{ order.fulfillment_date|date:"M d, Y"|default:"Not scheduled" }}</strong></div>
+      </div>
+      {% if order.completed_at %}
+        <div style="font-size: 0.8rem; color: #16a34a; margin-top: 0.35rem;">
+          ✓ Completed on {{ order.completed_at|date:"M d, Y g:i A" }}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="stat-card" style="text-align: left;">
+      <div class="stat-label">Grand Total</div>
+      <div class="stat-value" style="font-size: 2rem; color: #0284c7;">
+        ₱{{ order.total_amount|floatformat:2 }}
+      </div>
+      <div style="font-size: 0.8rem; color: #64748b;">{{ order.items.count }} line item(s)</div>
+    </div>
+  </div>
+
+  {% if order.description %}
+    <div style="margin-bottom: 1.5rem;">
+      <label>Specifications / Description</label>
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.75rem 1rem; border-radius: 0.375rem; white-space: pre-line; color: #334155;">
+        {{ order.description }}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Line Items Table -->
+  <div style="margin-bottom: 2rem;">
+    <h3 style="font-size: 1.15rem; color: #0f172a; margin-bottom: 0.75rem;">Itemized Items & Services</h3>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 5%;">#</th>
+            <th style="width: 50%;">Description</th>
+            <th style="width: 15%; text-align: right;">Quantity</th>
+            <th style="width: 15%; text-align: right;">Unit Price</th>
+            <th style="width: 15%; text-align: right;">Line Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in order.items.all %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td style="font-weight: 500;">{{ item.item_description }}</td>
+              <td style="text-align: right;">{{ item.quantity }}</td>
+              <td style="text-align: right;">₱{{ item.unit_price|floatformat:2 }}</td>
+              <td style="text-align: right; font-weight: 600;">₱{{ item.line_total|floatformat:2 }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" style="text-align: center; color: #64748b;">No items recorded for this order.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr style="background: #f8fafc; font-weight: 700;">
+            <td colspan="4" style="text-align: right; font-size: 1.05rem;">Total Amount:</td>
+            <td style="text-align: right; font-size: 1.15rem; color: #0284c7;">₱{{ order.total_amount|floatformat:2 }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Status Update Workflow -->
+  <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1.25rem; margin-bottom: 2rem;">
+    <h3 style="font-size: 1.05rem; margin-top: 0; margin-bottom: 0.75rem; color: #0f172a;">
+      Update Order Status (Workflow Transition)
+    </h3>
+    <form method="post" action="{% url 'order_status_update' order.pk %}" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end;">
+      {% csrf_token %}
+      <div style="flex: 1; min-width: 180px;">
+        <label for="{{ status_form.new_status.id_for_label }}">Change Status To</label>
+        {{ status_form.new_status }}
+      </div>
+      <div style="flex: 2; min-width: 240px;">
+        <label for="{{ status_form.remarks.id_for_label }}">Status Change Remarks / Notes</label>
+        {{ status_form.remarks }}
+      </div>
+      <div>
+        <button type="submit" class="btn btn-primary" style="padding: 0.55rem 1.25rem;">
+          Update Status
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Status Audit Trail Timeline -->
+  <div>
+    <h3 style="font-size: 1.05rem; color: #0f172a; margin-bottom: 0.5rem;">Status History Audit Trail (BR-23, BR-25)</h3>
+    <ul class="timeline">
+      {% for hist in order.status_history.all %}
+        <li class="timeline-item">
+          <div class="timeline-time">{{ hist.changed_at|date:"M d, Y h:i A" }}</div>
+          <div class="timeline-content">
+            Status: 
+            {% if hist.old_status %}
+              <span class="badge badge-{{ hist.old_status|lower }}">{{ hist.old_status }}</span> &rarr;
+            {% endif %}
+            <span class="badge badge-{{ hist.new_status|lower }}">{{ hist.new_status }}</span>
+            {% if hist.changed_by %}
+              by <strong>{{ hist.changed_by.username }}</strong>
+            {% endif %}
+            {% if hist.remarks %}
+              <div style="color: #475569; margin-top: 0.2rem; font-style: italic;">
+                &ldquo;{{ hist.remarks }}&rdquo;
+              </div>
+            {% endif %}
+          </div>
+        </li>
+      {% empty %}
+        <li style="color: #64748b; font-size: 0.875rem;">No status history recorded yet.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}
