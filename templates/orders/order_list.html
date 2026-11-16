@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}Orders - Orvanta{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <h2 class="card-title">Order Management</h2>
+      <p style="margin: 0.25rem 0 0; color: #64748b; font-size: 0.875rem;">
+        Track, process, and manage customer orders and service jobs.
+      </p>
+    </div>
+    <div class="btn-group">
+      <a href="{% url 'order_types_list' %}" class="btn btn-secondary btn-sm">Order Categories</a>
+      <a href="{% url 'order_create' %}" class="btn btn-primary">+ Create New Order</a>
+    </div>
+  </div>
+
+  <!-- Summary Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Orders</div>
+      <div class="stat-value">{{ stats.total }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Pending</div>
+      <div class="stat-value" style="color: #d97706;">{{ stats.pending }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">In Progress</div>
+      <div class="stat-value" style="color: #2563eb;">{{ stats.in_progress }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Completed</div>
+      <div class="stat-value" style="color: #16a34a;">{{ stats.completed }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Completed Sales</div>
+      <div class="stat-value" style="font-size: 1.5rem; color: #0f172a;">₱{{ stats.total_revenue|floatformat:2 }}</div>
+    </div>
+  </div>
+
+  <!-- Search & Filter Bar -->
+  <form method="get" action="{% url 'order_list' %}" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
+    <input type="text" name="q" value="{{ query }}" placeholder="Search by order #, title, or customer..." style="flex: 2; min-width: 220px;">
+    
+    <select name="status" style="flex: 1; min-width: 140px;">
+      <option value="">All Statuses</option>
+      {% for code, label in STATUS_CHOICES %}
+        <option value="{{ code }}" {% if status_filter == code %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="type" style="flex: 1; min-width: 140px;">
+      <option value="">All Categories</option>
+      {% for ot in order_types %}
+        <option value="{{ ot.pk }}" {% if type_filter == ot.pk|stringformat:"s" %}selected{% endif %}>{{ ot.type_name }}</option>
+      {% endfor %}
+    </select>
+
+    <button type="submit" class="btn btn-secondary">Filter</button>
+    {% if query or status_filter or type_filter %}
+      <a href="{% url 'order_list' %}" class="btn btn-secondary">Reset</a>
+    {% endif %}
+  </form>
+
+  <!-- Orders Table -->
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Title & Customer</th>
+          <th>Category</th>
+          <th>Order Date</th>
+          <th>Deadline</th>
+          <th>Status</th>
+          <th style="text-align: right;">Total Amount</th>
+          <th style="text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+          <tr>
+            <td>
+              <a href="{% url 'order_detail' order.pk %}" style="font-weight: 700; color: #0284c7; text-decoration: none;">
+                {{ order.order_no }}
+              </a>
+            </td>
+            <td>
+              <div style="font-weight: 600; color: #1e293b;">{{ order.title }}</div>
+              <div style="font-size: 0.8125rem; color: #64748b;">
+                Customer: <a href="{% url 'customer_detail' order.customer.pk %}" style="color: #64748b; text-decoration: underline;">{{ order.customer.full_name }}</a>
+              </div>
+            </td>
+            <td>{{ order.order_type.type_name }}</td>
+            <td>{{ order.order_date|date:"M d, Y" }}</td>
+            <td>
+              {% if order.deadline %}
+                {{ order.deadline|date:"M d, Y" }}
+              {% else %}
+                <span style="color: #94a3b8;">None</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+            </td>
+            <td style="text-align: right; font-weight: 600; font-size: 1rem;">
+              ₱{{ order.total_amount|floatformat:2 }}
+            </td>
+            <td style="text-align: right;">
+              <div class="btn-group" style="justify-content: flex-end;">
+                <a href="{% url 'order_detail' order.pk %}" class="btn btn-secondary btn-sm">View</a>
+                <a href="{% url 'order_edit' order.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" style="text-align: center; color: #64748b; padding: 2.5rem;">
+              {% if query or status_filter or type_filter %}
+                No orders match your filter criteria.
+              {% else %}
+                No orders found. Click <strong>+ Create New Order</strong> to log your first order!
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
