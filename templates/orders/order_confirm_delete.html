@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Cancel / Delete Order - {{ order.order_no }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 550px; margin: 0 auto;">
+  <div class="card-header">
+    <h2 class="card-title">Manage Order #{{ order.order_no }}</h2>
+    <a href="{% url 'order_detail' order.pk %}" class="btn btn-secondary btn-sm">Cancel</a>
+  </div>
+
+  <p>
+    You are managing order <strong>{{ order.order_no }} &mdash; {{ order.title }}</strong> for customer <strong>{{ order.customer.full_name }}</strong>. Current status is <span class="badge badge-{{ order.status|lower }}">{{ order.get_status_display }}</span>.
+  </p>
+
+  <form method="post" style="margin-top: 1.5rem;">
+    {% csrf_token %}
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+      {% if order.status != 'CANCELLED' %}
+        <div style="background: #fef9c3; border: 1px solid #fef08a; padding: 1rem; border-radius: 0.375rem;">
+          <h4 style="margin: 0 0 0.5rem; color: #854d0e;">Option 1: Cancel Order (Recommended)</h4>
+          <p style="margin: 0 0 0.75rem; font-size: 0.875rem; color: #713f12;">
+            Marks the order as CANCELLED while retaining all items and audit history for reporting.
+          </p>
+          <input type="text" name="remarks" placeholder="Optional cancellation reason..." style="margin-bottom: 0.75rem;">
+          <button type="submit" name="action" value="cancel" class="btn btn-secondary" style="width: 100%;">
+            Cancel Order
+          </button>
+        </div>
+      {% endif %}
+
+      {% if is_owner %}
+        <div style="background: #fee2e2; border: 1px solid #fecaca; padding: 1rem; border-radius: 0.375rem;">
+          <h4 style="margin: 0 0 0.5rem; color: #991b1b;">Option 2: Permanently Delete</h4>
+          <p style="margin: 0 0 0.75rem; font-size: 0.875rem; color: #7f1d1d;">
+            Permanently removes this order, its items, and its history from the database. This action cannot be undone.
+          </p>
+          <button type="submit" name="action" value="delete" class="btn btn-danger" style="width: 100%;" onclick="return confirm('Are you sure you want to permanently delete this order? This cannot be undone.');">
+            🗑️ Permanently Delete Order
+          </button>
+        </div>
+      {% else %}
+        <div class="alert info">
+          Note: Only business owners have permission to permanently delete order records.
+        </div>
+      {% endif %}
+    </div>
+
+    <div style="margin-top: 1.25rem; text-align: center;">
+      <a href="{% url 'order_detail' order.pk %}" style="color: #64748b; font-size: 0.875rem;">Back to Order Details</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

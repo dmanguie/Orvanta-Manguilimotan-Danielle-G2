@@ -53,13 +53,45 @@ def dashboard_redirect(request):
 
 @role_required(User.OWNER)
 def owner_dashboard(request):
-    return render(request, 'accounts/owner_dashboard.html',
-                  {'total_users': User.objects.count()})
+    from orders.models import Order
+    from customers.models import Customer
+    from django.db.models import Sum
+
+    user_orders = Order.objects.filter(user=request.user)
+    stats = {
+        'total_orders': user_orders.count(),
+        'pending_orders': user_orders.filter(status=Order.PENDING).count(),
+        'in_progress_orders': user_orders.filter(status=Order.IN_PROGRESS).count(),
+        'completed_orders': user_orders.filter(status=Order.COMPLETED).count(),
+        'total_revenue': user_orders.filter(status=Order.COMPLETED).aggregate(s=Sum('total_amount'))['s'] or 0,
+        'total_customers': Customer.objects.filter(user=request.user, is_archived=False).count(),
+    }
+    recent_orders = user_orders.select_related('customer', 'order_type').order_by('-created_at')[:5]
+
+    return render(request, 'accounts/owner_dashboard.html', {
+        'stats': stats,
+        'recent_orders': recent_orders,
+        'total_users': User.objects.count(),
+    })
 
 
 @role_required(User.STAFF)
 def staff_dashboard(request):
-    return render(request, 'accounts/staff_dashboard.html')
+    from orders.models import Order
+
+    user_orders = Order.objects.filter(user=request.user)
+    stats = {
+        'total_orders': user_orders.count(),
+        'pending_orders': user_orders.filter(status=Order.PENDING).count(),
+        'in_progress_orders': user_orders.filter(status=Order.IN_PROGRESS).count(),
+        'ready_orders': user_orders.filter(status=Order.READY).count(),
+    }
+    recent_orders = user_orders.select_related('customer', 'order_type').order_by('-created_at')[:5]
+
+    return render(request, 'accounts/staff_dashboard.html', {
+        'stats': stats,
+        'recent_orders': recent_orders,
+    })
 
 
 @login_required
