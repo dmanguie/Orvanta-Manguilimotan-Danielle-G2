@@ -1,27 +1,32 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Orvanta{% endblock %}</title>
+  <title>{% block title %}Orvanta - Business Operations & Order Management{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
 <nav>
-  <a href="{% url 'dashboard' %}">Orvanta</a>
-  {% if user.is_authenticated %}
-    <a href="{% url 'dashboard' %}">Dashboard</a>
-    <a href="{% url 'profile' %}">Profile</a>
-    {% if user.is_superuser %}
-      <a href="/admin/">Manage Users</a>
+  <a href="{% url 'dashboard' %}" class="nav-brand">Orvanta</a>
+  <div class="nav-links">
+    {% if user.is_authenticated %}
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <a href="{% url 'customer_list' %}">Customers</a>
+      <a href="{% url 'profile' %}">Profile</a>
+      {% if user.is_superuser %}
+        <a href="/admin/">Admin</a>
+      {% endif %}
+      <span style="font-size: 0.85rem; color: #94a3b8;">{{ user.username }} ({{ user.get_role_display }})</span>
+      <form method="post" action="{% url 'logout' %}" style="display:inline">
+        {% csrf_token %}<button type="submit">Logout</button>
+      </form>
+    {% else %}
+      <a href="{% url 'login' %}">Login</a>
+      <a href="{% url 'register' %}">Register</a>
     {% endif %}
-    <form method="post" action="{% url 'logout' %}" style="display:inline">
-      {% csrf_token %}<button type="submit">Logout</button>
-    </form>
-  {% else %}
-    <a href="{% url 'login' %}">Login</a>
-    <a href="{% url 'register' %}">Register</a>
-  {% endif %}
+  </div>
 </nav>
 
 <main>
@@ -29,9 +34,7 @@
     <div class="alert {{ message.tags }}">{{ message }}</div>
   {% endfor %}
 
-  <div class="card">
-    {% block content %}{% endblock %}
-  </div>
+  {% block content %}{% endblock %}
 </main>
 </body>
 </html>
